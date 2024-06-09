@@ -29,10 +29,10 @@ VBuy is a simple ecommerce platform where customers can search products, add the
 | HTTP Method | Endpoint | Comments | Scope |
 | --- | --- | --- | --- |
 | GET | /orders | list of all orders | USER |
-| GET | /products/{id} | get product by id | USER |
-| POST | /products | create product | USER |
-| DELETE | /products/{id} | delete product by id | USER |
-| PATCH | /products/{id} | update product by id | USER |
+| GET | /orders/{id} | get order by id | USER |
+| POST | /orders | create order | USER |
+| DELETE | /orders/{id} | delete order by id | USER |
+| PATCH | /orders/{id} | update order by id | USER |
 
 ### Payment
 
