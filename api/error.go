@@ -27,7 +27,7 @@ func (e Error) Error() string {
     return fmt.Sprintf("Code: %s, Title: %s, Status: %d", e.Code, e.Title, e.Status)
 }
 
-func (e Error) ToResponse() ErrorResponse {
+func (e Error) ToErrorResponse() ErrorResponse {
     return ErrorResponse{
         Code:   e.Code,
         Title:  e.Code,
