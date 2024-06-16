@@ -20,14 +20,15 @@ func main() {
     pr := postgres.NewProductRepository(conn)
     p := vbuy.ProductCreate{
         Name:         "Vivek T S",
-        ReleasedDate: time.Now(),
+        ReleasedDate: vbuy.Date(time.Now()),
         Model:        "Human",
         Price:        23.1237,
         Manufacturer: "God",
         IsActive:     false,
     }
-    _, err = pr.CreateProduct(ctx, p)
+    product, err := pr.CreateProduct(ctx, p)
     if err != nil {
         log.Fatal(err)
     }
+    log.Printf("Created Product: %v", product)
 }

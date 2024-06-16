@@ -8,7 +8,7 @@ import (
 type Product struct {
     ID           string    `json:"id"`
     Name         string    `json:"name"`
-    ReleasedDate time.Time `json:"releasedDate"`
+    ReleasedDate Date      `json:"releasedDate"`
     Model        string    `json:"model"`
     Price        Money     `json:"price"`
     Manufacturer string    `json:"manufacturer"`
@@ -28,12 +28,20 @@ type ProductService interface {
 }
 
 type ProductCreate struct {
-    Name         string    `json:"name"`
-    ReleasedDate time.Time `json:"releasedDate"`
-    Model        string    `json:"model"`
-    Price        Money     `json:"price"`
-    Manufacturer string    `json:"manufacturer"`
-    IsActive     bool      `json:"isActive"`
+    Name         string `json:"name"`
+    ReleasedDate Date   `json:"releasedDate"`
+    Model        string `json:"model"`
+    Price        Money  `json:"price"`
+    Manufacturer string `json:"manufacturer"`
+    IsActive     bool   `json:"isActive"`
+}
+
+func (pc *ProductCreate) ToProduct(p *Product) {
+    p.Manufacturer = pc.Manufacturer
+    p.Model = pc.Model
+    p.Name = pc.Name
+    p.Price = pc.Price
+    p.ReleasedDate = pc.ReleasedDate
 }
 
 type ProductUpdate struct {
