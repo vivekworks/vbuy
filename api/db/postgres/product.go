@@ -4,7 +4,7 @@ import (
     "context"
     "github.com/jackc/pgx/v5"
     "github.com/vivekworks/vbuy"
-    "log"
+    "go.uber.org/zap"
     "time"
 )
 
@@ -17,23 +17,32 @@ func NewProductRepository(conn *pgx.Conn) *ProductRepository {
 }
 
 func (pr *ProductRepository) CreateProduct(ctx context.Context, p vbuy.ProductCreate) (*vbuy.Product, error) {
+    rInfo := vbuy.RequestInfoFromContext(ctx)
     tx, err := pr.db.Begin(ctx)
     if err != nil {
-        log.Fatal(err)
+        rInfo.Logger.Error("error beginning transaction", zap.Error(err))
         return nil, vbuy.ErrInternalServer
     }
     defer tx.Rollback(ctx)
-    user := ctx.Value("user").(string)
-    sql := "INSERT INTO PRODUCTS(name, released_date, model, manufacturer, price, is_active, created_by, updated_by) VALUES($1, $2, $3, $4, $5, $6, $7, $8) RETURNING id, created_at, updated_at, is_active"
+    query := `INSERT INTO PRODUCTS(
+                name,
+                released_date,
+                model,
+                manufacturer,
+                price,
+                is_active,
+                created_by,
+                updated_by)
+            VALUES($1, $2, $3, $4, $5, $6, $7, $8)
+            RETURNING id, created_at, updated_at, is_active`
     var product vbuy.Product
-    err = tx.QueryRow(ctx, sql, p.Name, time.Time(p.ReleasedDate), p.Model, p.Manufacturer, p.Price, p.IsActive, user, user).Scan(&product.ID, &product.CreatedAt, &product.UpdatedAt, &product.IsActive)
+    err = tx.QueryRow(ctx, query, p.Name, time.Time(p.ReleasedDate), p.Model, p.Manufacturer, p.Price, p.IsActive, rInfo.User, rInfo.User).Scan(&product.ID, &product.CreatedAt, &product.UpdatedAt, &product.IsActive)
     if err != nil {
-        log.Fatal(err)
+        rInfo.Logger.Error("error querying row", zap.Error(err))
         return nil, vbuy.ErrInternalServer
     }
     tx.Commit(ctx)
-    product.CreatedBy = user
-    product.UpdatedBy = user
+    product.CreatedBy, product.UpdatedBy = rInfo.User, rInfo.User
     p.ToProduct(&product)
     return &product, nil
 }

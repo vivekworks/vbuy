@@ -5,16 +5,22 @@ import (
     "github.com/jackc/pgx/v5"
     "github.com/vivekworks/vbuy"
     "github.com/vivekworks/vbuy/db/postgres"
+    "go.uber.org/zap"
     "log"
     "time"
 )
 
 func main() {
     ctx := context.Background()
+    logger, err := zap.NewProduction()
+    if err != nil {
+        log.Fatal("zap error", err)
+    }
     connStr := "postgresql://vivekts:vivekts@localhost:5432/vbuy"
     conn, err := pgx.Connect(ctx, connStr)
     if err != nil {
-        log.Fatal(err)
+        logger.Info("postgres connection error", zap.Error(err))
+        panic(err)
     }
     ctx = context.WithValue(ctx, "user", "system")
     pr := postgres.NewProductRepository(conn)
@@ -28,7 +34,7 @@ func main() {
     }
     product, err := pr.CreateProduct(ctx, p)
     if err != nil {
-        log.Fatal(err)
+        logger.Info("create product error", zap.Error(err))
     }
-    log.Printf("Created Product: %v", product)
+    logger.Info("Created Product", zap.Any("product", product))
 }
