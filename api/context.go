@@ -13,9 +13,10 @@ type RequestInfo struct {
     ID     string
 }
 
-func NewWithRequestID(ctx context.Context, requestId string) context.Context {
+func NewRequestContext(ctx context.Context, requestId string, logger *zap.Logger) context.Context {
     r := &RequestInfo{
-        ID: requestId,
+        ID:     requestId,
+        Logger: logger,
     }
     return context.WithValue(ctx, RequestInfoKey, r)
 }
