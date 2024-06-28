@@ -36,7 +36,7 @@ func (e Error) ToErrorResponse() ErrorResponse {
 }
 
 var (
-    // General
+    // Common errors
     ErrInternalServer = Error{Code: "Vb001", Title: "Server failure", Status: http.StatusInternalServerError}
     ErrUnauthorized   = Error{Code: "Vb002", Title: "Not authorized to perform the action", Status: http.StatusUnauthorized}
     ErrNotImplemented = Error{Code: "Vb003", Title: "Action not implemented", Status: http.StatusNotImplemented}

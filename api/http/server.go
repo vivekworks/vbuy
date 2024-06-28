@@ -2,34 +2,41 @@ package http
 
 import (
     "github.com/go-chi/chi/v5"
-    "github.com/vivekworks/vbuy"
+    "github.com/go-chi/chi/v5/middleware"
     "net/http"
 )
 
 type Server struct {
+    server *http.Server
+    router *chi.Mux
 }
 
-func NewServer() *http.Server {
-    r := chi.NewRouter()
-    r.Use(RequestLoggerMiddleware)
-    userRouter := chi.NewRouter()
-    userRouter.Route("/", func(rr chi.Router) {
-        rr.Get("/{userID}", func(w http.ResponseWriter, r *http.Request) {
-            rInfo := vbuy.RequestInfoFromContext(r.Context())
-            rInfo.Logger.Info("Inside User ID route")
-        })
-    })
-    productRouter := chi.NewRouter()
-    productRouter.Route("/", func(rr chi.Router) {
-        rr.Get("/{productID}", func(w http.ResponseWriter, r *http.Request) {
-            rInfo := vbuy.RequestInfoFromContext(r.Context())
-            rInfo.Logger.Info("Inside Product ID route")
-        })
-    })
-    r.Mount("/api/products", productRouter)
-    r.Mount("/api/users", userRouter)
-    return &http.Server{
-        Addr:    ":8080",
-        Handler: r,
+func NewServer() *Server {
+    s := &Server{
+        server: &http.Server{
+            Addr: ":8080",
+        },
+        router: chi.NewRouter(),
     }
+    s.router.Use(RequestLoggerMiddleware)
+    s.router.Use(middleware.StripSlashes)
+    apiRouter := chi.NewRouter()
+    s.router.Mount("/api", apiRouter)
+    s.registerProductRoutes(apiRouter)
+    //    &http.Server{
+    //        Addr:    ":8080",
+    //        Handler: r,
+    //        IdleTimeout: 30 * time.Second,
+    //        ReadTimeout: 200 * time.Millisecond,
+    //        ReadHeaderTimeout: 50 * time.Millisecond,
+    //        WriteTimeout: 1 * time.Second,
+    //    }
+    return s
+}
+
+func (s *Server) registerProductRoutes(mr *chi.Mux) {
+    ph := NewProductHandler(nil)
+    mr.Route("/products", func(r chi.Router) {
+        r.Get("/", ph.HandleGetUser)
+    })
 }
