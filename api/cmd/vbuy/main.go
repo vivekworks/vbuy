@@ -38,6 +38,9 @@ func main() {
     }()
 
     flag.Parse()
+    if *DBUser == "" || *DBPassword == "" {
+        log.Fatal("invalid DB username or password")
+    }
 
     m := &Main{}
     m.LoadConfig(*Env)
