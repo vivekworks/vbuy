@@ -2,27 +2,25 @@ package postgres
 
 import (
     "context"
-    "github.com/jackc/pgx/v5/pgxpool"
     "github.com/vivekworks/vbuy"
-    "github.com/vivekworks/vbuy/db"
     "github.com/vivekworks/vbuy/service"
     "go.uber.org/zap"
     "time"
 )
 
 type ProductRepository struct {
-    db *pgxpool.Pool
+    db *DB
 }
 
-func NewProductRepository(pool *pgxpool.Pool) *ProductRepository {
+func NewProductRepository(db *DB) *ProductRepository {
     return &ProductRepository{
-        db: pool,
+        db: db,
     }
 }
 
-func (pr *ProductRepository) SaveProduct(ctx context.Context, p *service.Product) (*db.Product, error) {
+func (pd *ProductRepository) SaveProduct(ctx context.Context, p *service.Product) (*service.Product, error) {
     rInfo := vbuy.RequestInfoFromContext(ctx)
-    tx, err := pr.db.Begin(ctx)
+    tx, err := pd.db.pool.Begin(ctx)
     if err != nil {
         rInfo.Logger.Error("error beginning transaction", zap.Error(err))
         return nil, vbuy.ErrInternalServer
@@ -50,15 +48,15 @@ func (pr *ProductRepository) SaveProduct(ctx context.Context, p *service.Product
     return nil, nil
 }
 
-func (pr *ProductRepository) GetProductByID(ctx context.Context, id string) (*db.Product, error) {
+func (pd *ProductRepository) GetProductByID(ctx context.Context, id string) (*service.Product, error) {
     return nil, nil
 }
-func (pr *ProductRepository) GetAllProducts(ctx context.Context) ([]*db.Product, error) {
+func (pd *ProductRepository) GetAllProducts(ctx context.Context) ([]*service.Product, error) {
     return nil, nil
 }
-func (pr *ProductRepository) UpdateProduct(ctx context.Context, p *service.Product) (*db.Product, error) {
+func (pd *ProductRepository) UpdateProduct(ctx context.Context, p *service.Product) (*service.Product, error) {
     return nil, nil
 }
-func (pr *ProductRepository) DeleteProduct(ctx context.Context, id string) (*db.Product, error) {
+func (pd *ProductRepository) DeleteProduct(ctx context.Context, id string) (*service.Product, error) {
     return nil, nil
 }

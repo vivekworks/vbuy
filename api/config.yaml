@@ -1,0 +1,13 @@
+http:
+    port: 8080
+    timeout:
+        idle: 5000
+        read: 1000
+        readheader: 1000
+        write: 2000
+        shutdown: 1000
+db:
+    name: vbuy
+    sslmode: require
+log:
+    level: info
