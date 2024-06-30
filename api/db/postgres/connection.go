@@ -7,6 +7,8 @@ import (
     "go.uber.org/zap"
 )
 
+const UrlFormat = "postgres://%s:%s@%s:%d/%s"
+
 type DB struct {
     pool *pgxpool.Pool
 }
@@ -21,6 +23,6 @@ func NewDB(ctx context.Context, dbURL string) (*DB, error) {
     return &DB{pool: dbPool}, nil
 }
 
-func (db *DB) Close() {
-    db.pool.Close()
+func (d *DB) Close() {
+    d.pool.Close()
 }

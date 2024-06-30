@@ -6,6 +6,7 @@ import (
     "fmt"
     "github.com/spf13/viper"
     "github.com/vivekworks/vbuy"
+    "github.com/vivekworks/vbuy/db"
     "github.com/vivekworks/vbuy/db/postgres"
     "github.com/vivekworks/vbuy/http"
     "go.uber.org/zap"
@@ -18,9 +19,13 @@ import (
 type Main struct {
     Config     *vbuy.Config
     HTTPServer *http.Server
-    DB         *postgres.DB
+    DB         db.DB
     Logger     *zap.Logger
 }
+
+var (
+    InvalidDBUsernameOrPassword = "invalid DB username or password"
+)
 
 var (
     Env        = flag.String("ENV", vbuy.Development, "running environment")
@@ -30,40 +35,39 @@ var (
 
 func main() {
     ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
-    go func() {
-        stop()
-        if r := recover(); r != nil {
-            log.Printf("application panic: %v", r)
-        }
-    }()
+    defer stop()
 
     flag.Parse()
     if *DBUser == "" || *DBPassword == "" {
-        log.Fatal("invalid DB username or password")
+        log.Fatal(InvalidDBUsernameOrPassword)
     }
-
+    log.Println("After parsing flags")
     m := &Main{}
     m.LoadConfig(*Env)
-    m.SetLogger(ctx, *Env)
-
+    ctx = m.SetLogger(ctx, *Env)
+    log.Println("After setting logger")
     if err := m.OpenDBConnection(ctx, *DBUser, *DBPassword); err != nil {
         m.Logger.Error("error opening db connection", zap.Error(err))
         os.Exit(1)
     }
+    log.Println("After opening db connection pool")
     if err := m.StartServer(ctx); err != nil {
         m.Logger.Error("error starting server", zap.Error(err))
         os.Exit(1)
     }
+    log.Println("After starting server")
     <-ctx.Done()
+    log.Println("After Done")
     if err := m.Close(); err != nil {
         log.Fatalf("error closing resources: %v", err)
     }
+    log.Println("After Close()")
 }
 
 func (m *Main) LoadConfig(env string) {
     viper.SetConfigName("config")
     viper.SetConfigType("yaml")
-    viper.AddConfigPath("../..")
+    viper.AddConfigPath(".")
 
     if err := viper.ReadInConfig(); err != nil {
         log.Fatalf("error reading config: %v", err)
@@ -83,20 +87,19 @@ func (m *Main) LoadConfig(env string) {
     m.Config = &c
 }
 
-func (m *Main) SetLogger(ctx context.Context, env string) {
+func (m *Main) SetLogger(ctx context.Context, env string) context.Context {
     logger := vbuy.NewLogger(m.Config.Logger.Level, env)
     m.Logger = logger
-    vbuy.WithLogger(ctx, logger)
+    return vbuy.WithLogger(ctx, logger)
 }
 
 func (m *Main) OpenDBConnection(ctx context.Context, user string, password string) error {
-    dbURL := fmt.Sprintf("postgres://%s:%s&%s:%d/%s?sslmode=%s",
-        user, password, m.Config.DB.Host, m.Config.DB.Port, m.Config.DB.Name, m.Config.DB.SslMode)
-    db, err := postgres.NewDB(ctx, dbURL)
+    dbURL := fmt.Sprintf(postgres.UrlFormat, user, password, m.Config.DB.Host, m.Config.DB.Port, m.Config.DB.Name)
+    pdb, err := postgres.NewDB(ctx, dbURL)
     if err != nil {
         return err
     }
-    m.DB = db
+    m.DB = pdb
     return nil
 }
 

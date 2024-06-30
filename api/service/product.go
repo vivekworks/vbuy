@@ -1,48 +1,33 @@
 package service
 
 import (
-    "context"
-    "github.com/vivekworks/vbuy/db"
-    "github.com/vivekworks/vbuy/http"
-    "time"
+	"context"
+	"github.com/vivekworks/vbuy"
+	"github.com/vivekworks/vbuy/db"
 )
 
-type Product struct {
-    ID           string
-    Name         string
-    ReleasedDate time.Time
-    Model        string
-    Price        float64
-    Manufacturer string
-    IsActive     bool
-    CreatedAt    time.Time
-    UpdatedAt    time.Time
-    CreatedBy    string
-    UpdatedBy    string
-}
-
 type ProductService struct {
-    pr *db.ProductRepository
+	pr *db.ProductRepository
 }
 
 func NewProductService(pr *db.ProductRepository) *ProductService {
-    return &ProductService{
-        pr: pr,
-    }
+	return &ProductService{
+		pr: pr,
+	}
 }
 
-func (ps *ProductService) CreateProduct(ctx context.Context, p http.ProductCreate) (*Product, error) {
-    return nil, nil
+func (ps *ProductService) CreateProduct(ctx context.Context, p vbuy.ProductCreate) (*db.Product, error) {
+	return nil, nil
 }
-func (ps *ProductService) GetProduct(ctx context.Context, id string) (*Product, error) {
-    return nil, nil
+func (ps *ProductService) GetProduct(ctx context.Context, id string) (*db.Product, error) {
+	return nil, nil
 }
-func (ps *ProductService) ListAllProducts(ctx context.Context) ([]*Product, error) {
-    return nil, nil
+func (ps *ProductService) ListAllProducts(ctx context.Context) ([]*db.Product, error) {
+	return nil, nil
 }
-func (ps *ProductService) UpdateProduct(ctx context.Context, id string, p http.ProductUpdate) (*Product, error) {
-    return nil, nil
+func (ps *ProductService) UpdateProduct(ctx context.Context, id string, p vbuy.ProductUpdate) (*db.Product, error) {
+	return nil, nil
 }
-func (ps *ProductService) DeleteProduct(ctx context.Context, id string) (*Product, error) {
-    return nil, nil
+func (ps *ProductService) DeleteProduct(ctx context.Context, id string) (*db.Product, error) {
+	return nil, nil
 }
