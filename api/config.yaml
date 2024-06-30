@@ -5,7 +5,7 @@ http:
         read: 1000
         readheader: 1000
         write: 2000
-        shutdown: 1000
+        shutdown: 5000
 db:
     name: vbuy
     sslmode: require

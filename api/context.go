@@ -33,5 +33,9 @@ func RequestInfoFromContext(ctx context.Context) *RequestInfo {
 }
 
 func LoggerFromContext(ctx context.Context) *zap.Logger {
-	return ctx.Value(LoggerKey).(*zap.Logger)
+	l := ctx.Value(LoggerKey)
+	if l != nil {
+		return l.(*zap.Logger)
+	}
+	return nil
 }

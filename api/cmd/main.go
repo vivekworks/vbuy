@@ -4,14 +4,12 @@ import (
     "context"
     "flag"
     "fmt"
-    "github.com/spf13/viper"
     "github.com/vivekworks/vbuy"
     "github.com/vivekworks/vbuy/db"
     "github.com/vivekworks/vbuy/db/postgres"
     "github.com/vivekworks/vbuy/http"
     "go.uber.org/zap"
     "log"
-    "os"
     "os/signal"
     "syscall"
 )
@@ -23,9 +21,7 @@ type Main struct {
     Logger     *zap.Logger
 }
 
-var (
-    InvalidDBUsernameOrPassword = "invalid DB username or password"
-)
+var ErrInvalidDBUsernameOrPassword = "invalid DB username or password"
 
 var (
     Env        = flag.String("ENV", vbuy.Development, "running environment")
@@ -39,52 +35,34 @@ func main() {
 
     flag.Parse()
     if *DBUser == "" || *DBPassword == "" {
-        log.Fatal(InvalidDBUsernameOrPassword)
+        log.Fatal(ErrInvalidDBUsernameOrPassword)
     }
-    log.Println("After parsing flags")
-    m := &Main{}
-    m.LoadConfig(*Env)
+
+    m := &Main{
+        Config: vbuy.NewConfig(*Env),
+    }
+
     ctx = m.SetLogger(ctx, *Env)
-    log.Println("After setting logger")
+
     if err := m.OpenDBConnection(ctx, *DBUser, *DBPassword); err != nil {
-        m.Logger.Error("error opening db connection", zap.Error(err))
-        os.Exit(1)
+        log.Fatal(err)
     }
-    log.Println("After opening db connection pool")
-    if err := m.StartServer(ctx); err != nil {
-        m.Logger.Error("error starting server", zap.Error(err))
-        os.Exit(1)
+
+    errChan := make(chan error, 1)
+    if err := m.StartServer(ctx, errChan); err != nil {
+        log.Fatal(err)
     }
-    log.Println("After starting server")
-    <-ctx.Done()
-    log.Println("After Done")
+    select {
+    case <-ctx.Done():
+        log.Println("context cancelled, shutting down server")
+    case err := <-errChan:
+        log.Println(err)
+    }
+
     if err := m.Close(); err != nil {
-        log.Fatalf("error closing resources: %v", err)
+        log.Fatalf("server shutdown failed: %v", err)
     }
-    log.Println("After Close()")
-}
-
-func (m *Main) LoadConfig(env string) {
-    viper.SetConfigName("config")
-    viper.SetConfigType("yaml")
-    viper.AddConfigPath(".")
-
-    if err := viper.ReadInConfig(); err != nil {
-        log.Fatalf("error reading config: %v", err)
-    }
-
-    viper.SetConfigName(fmt.Sprintf("config.%s", env))
-
-    if err := viper.MergeInConfig(); err != nil {
-        log.Fatalf("error merging config: %v", err)
-    }
-
-    var c vbuy.Config
-    err := viper.Unmarshal(&c)
-    if err != nil {
-        log.Fatalf("error unmarshalling config: %v", err)
-    }
-    m.Config = &c
+    log.Println("server shutdown gracefully")
 }
 
 func (m *Main) SetLogger(ctx context.Context, env string) context.Context {
@@ -103,11 +81,11 @@ func (m *Main) OpenDBConnection(ctx context.Context, user string, password strin
     return nil
 }
 
-func (m *Main) StartServer(ctx context.Context) error {
+func (m *Main) StartServer(ctx context.Context, errChan chan<- error) error {
     pr := postgres.NewProductRepository(m.DB)
     server := http.NewServer(ctx, m.Config, pr)
     m.HTTPServer = server
-    return server.Start(ctx)
+    return server.Start(ctx, errChan)
 }
 
 func (m *Main) Close() error {
