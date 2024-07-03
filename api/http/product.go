@@ -23,3 +23,10 @@ func (ph *ProductHandler) HandleGetUser(w http.ResponseWriter, r *http.Request) 
     w.WriteHeader(http.StatusOK)
     w.Write([]byte("All OK!"))
 }
+
+func (ph *ProductHandler) HandlePostUser(w http.ResponseWriter, r *http.Request) {
+    rInfo := vbuy.RequestInfoFromContext(r.Context())
+    rInfo.Logger.Info("Inside HandlePostUser", zap.String("requestID", rInfo.ID))
+    w.WriteHeader(http.StatusOK)
+    w.Write([]byte("All OK!"))
+}

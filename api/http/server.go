@@ -72,5 +72,6 @@ func (s *Server) registerProductRoutes(mux *chi.Mux, pr db.ProductRepository) {
     ph := NewProductHandler(ps)
     mux.Route("/products", func(r chi.Router) {
         r.Get("/", ph.HandleGetUser)
+        r.Post("/", ph.HandlePostUser)
     })
 }

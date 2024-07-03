@@ -2,6 +2,7 @@ package postgres
 
 import (
     "context"
+    "github.com/jackc/pgx/v5"
     "github.com/vivekworks/vbuy"
     "github.com/vivekworks/vbuy/db"
     "go.uber.org/zap"
@@ -38,7 +39,7 @@ func (pr *ProductRepository) SaveProduct(ctx context.Context, p *db.Product) (*d
             RETURNING id, created_at, updated_at, is_active`
     err = tx.QueryRow(ctx, query, p.Name, p.ReleasedDate, p.Model, p.Manufacturer, p.Price, p.IsActive, rInfo.User, rInfo.User).Scan(&p.ID, &p.CreatedAt, &p.UpdatedAt, &p.IsActive)
     if err != nil {
-        rInfo.Logger.Error("error querying row", zap.Error(err))
+        rInfo.Logger.Error("error inserting row", zap.Error(err))
         return nil, vbuy.ErrInternalServer
     }
     tx.Commit(ctx)
@@ -47,7 +48,21 @@ func (pr *ProductRepository) SaveProduct(ctx context.Context, p *db.Product) (*d
 }
 
 func (pr *ProductRepository) GetProductByID(ctx context.Context, id string) (*db.Product, error) {
-    return nil, nil
+    rInfo := vbuy.RequestInfoFromContext(ctx)
+    query := `SELECT id, name, released_date, model, price, manufacturer, is_active, created_by, created_at, updated_by, updated_at
+                FROM PRODUCTS
+               WHERE id = $1`
+    rows, err := pr.db.pool.Query(ctx, query, id)
+    if err != nil {
+        rInfo.Logger.Error("error querying row", zap.String("id", id), zap.Error(err))
+        return nil, vbuy.ErrInternalServer
+    }
+    products, err := pgx.CollectRows(rows, pgx.RowToStructByName[db.Product])
+    if err != nil {
+        rInfo.Logger.Error("error collecting rows", zap.String("id", id), zap.Error(err))
+        return nil, vbuy.ErrInternalServer
+    }
+    return &products[0], nil
 }
 func (pr *ProductRepository) GetAllProducts(ctx context.Context) ([]*db.Product, error) {
     return nil, nil
