@@ -1,6 +1,7 @@
 package http
 
 import (
+    "encoding/json"
     "github.com/vivekworks/vbuy"
     "github.com/vivekworks/vbuy/service"
     "go.uber.org/zap"
@@ -26,7 +27,16 @@ func (ph *ProductHandler) HandleGetUser(w http.ResponseWriter, r *http.Request) 
 
 func (ph *ProductHandler) HandlePostUser(w http.ResponseWriter, r *http.Request) {
     rInfo := vbuy.RequestInfoFromContext(r.Context())
-    rInfo.Logger.Info("Inside HandlePostUser", zap.String("requestID", rInfo.ID))
-    w.WriteHeader(http.StatusOK)
-    w.Write([]byte("All OK!"))
+    var pc vbuy.ProductCreate
+    if err := json.NewDecoder(r.Body).Decode(&pc); err != nil {
+        rInfo.Logger.Error("error decoding request body", zap.Error(err))
+        _ = json.NewEncoder(w).Encode(vbuy.ErrInternalServer.ToErrorResponse())
+        return
+    }
+    res, err := ph.ps.CreateProduct(r.Context(), pc)
+    if err != nil {
+        _ = json.NewEncoder(w).Encode(err.(vbuy.Error).ToErrorResponse())
+        return
+    }
+    _ = json.NewEncoder(w).Encode(res)
 }
