@@ -32,7 +32,7 @@ func NewLogger(level string, env string) *zap.Logger {
 		config = zap.Config{
 			Development:       true,
 			DisableCaller:     false,
-			DisableStacktrace: false,
+			DisableStacktrace: true,
 			Encoding:          string(Console),
 			EncoderConfig:     encoderConfig,
 		}

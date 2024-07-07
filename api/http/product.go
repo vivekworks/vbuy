@@ -30,17 +30,25 @@ func (ph *ProductHandler) HandleGetUser(w http.ResponseWriter, r *http.Request) 
 }
 
 func (ph *ProductHandler) HandlePostUser(w http.ResponseWriter, r *http.Request) {
-    rInfo := vbuy.RequestInfoFromContext(r.Context())
+    ctx := r.Context()
+    rInfo := vbuy.RequestInfoFromContext(ctx)
     var pc vbuy.ProductCreate
-    if err := json.NewDecoder(r.Body).Decode(&pc); err != nil {
+    if err := vbuy.DecodeJSON(r.Body, &pc); err != nil {
         rInfo.Logger.Error("error decoding request body", zap.Error(err))
-        _ = json.NewEncoder(w).Encode(vbuy.ErrInternalServer.ToErrorResponse())
+        HandleInvalidPayload(ctx, w, nil)
         return
     }
-    res, err := ph.ps.CreateProduct(r.Context(), pc)
+    if err := pc.Validate(); err != nil {
+        HandleInvalidPayload(ctx, w, err)
+        return
+    }
+    res, err := ph.ps.CreateProduct(ctx, pc)
     if err != nil {
-        _ = json.NewEncoder(w).Encode(err.(vbuy.Error).ToErrorResponse())
+        HandleInternalServerError(ctx, w)
         return
     }
-    _ = json.NewEncoder(w).Encode(res)
+    if err = vbuy.EncodeJSON(w, res); err != nil {
+        HandleInternalServerError(ctx, w)
+        return
+    }
 }
