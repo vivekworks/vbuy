@@ -44,7 +44,7 @@ func (pr *ProductRepository) SaveProduct(ctx context.Context, p *db.Product) (*d
     }
     tx.Commit(ctx)
     p.CreatedBy, p.UpdatedBy = rInfo.User, rInfo.User
-    return nil, nil
+    return p, nil
 }
 
 func (pr *ProductRepository) GetProductByID(ctx context.Context, id string) (*db.Product, error) {

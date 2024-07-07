@@ -26,6 +26,8 @@ func NewServer(
 ) *Server {
     mux := chi.NewRouter()
     mux.Use(RequestLoggerMiddleware(ctx))
+    mux.Use(middleware.AllowContentType("application/json"))
+    mux.Use(ResponseContentTypeMiddleware)
     mux.Use(middleware.Recoverer)
     apiRouter := chi.NewRouter()
     mux.Mount("/api", apiRouter)
@@ -68,10 +70,10 @@ func (s *Server) Start(ctx context.Context, errChan chan<- error) error {
 }
 
 func (s *Server) registerProductRoutes(mux *chi.Mux, pr db.ProductRepository) {
-    ps := service.NewProductService(&pr)
+    ps := service.NewProductService(pr)
     ph := NewProductHandler(ps)
     mux.Route("/products", func(r chi.Router) {
-        r.Get("/", ph.HandleGetUser)
+        r.Get("/{id}", ph.HandleGetUser)
         r.Post("/", ph.HandlePostUser)
     })
 }

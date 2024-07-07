@@ -2,6 +2,7 @@ package http
 
 import (
     "encoding/json"
+    "github.com/go-chi/chi/v5"
     "github.com/vivekworks/vbuy"
     "github.com/vivekworks/vbuy/service"
     "go.uber.org/zap"
@@ -20,9 +21,14 @@ func NewProductHandler(ps *service.ProductService) *ProductHandler {
 
 func (ph *ProductHandler) HandleGetUser(w http.ResponseWriter, r *http.Request) {
     rInfo := vbuy.RequestInfoFromContext(r.Context())
-    rInfo.Logger.Info("Inside HandlerGetUser", zap.String("requestID", rInfo.ID))
-    w.WriteHeader(http.StatusOK)
-    w.Write([]byte("All OK!"))
+    pId := chi.URLParam(r, "id")
+    rInfo.Logger.Info("HandleGetUser", zap.String("id", pId))
+    res, err := ph.ps.GetProduct(r.Context(), pId)
+    if err != nil {
+        _ = json.NewEncoder(w).Encode(err.(vbuy.Error).ToErrorResponse())
+        return
+    }
+    _ = json.NewEncoder(w).Encode(res)
 }
 
 func (ph *ProductHandler) HandlePostUser(w http.ResponseWriter, r *http.Request) {
