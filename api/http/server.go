@@ -27,7 +27,7 @@ func NewServer(
     mux := chi.NewRouter()
     mux.Use(RequestLoggerMiddleware(ctx))
     mux.Use(middleware.AllowContentType("application/json"))
-    mux.Use(ResponseContentTypeMiddleware)
+    mux.Use(middleware.SetHeader("Content-Type", "application/json"))
     mux.Use(middleware.Recoverer)
     apiRouter := chi.NewRouter()
     mux.Mount("/api", apiRouter)

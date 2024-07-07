@@ -20,9 +20,7 @@ func NewProductHandler(ps *service.ProductService) *ProductHandler {
 }
 
 func (ph *ProductHandler) HandleGetUser(w http.ResponseWriter, r *http.Request) {
-    rInfo := vbuy.RequestInfoFromContext(r.Context())
     pId := chi.URLParam(r, "id")
-    rInfo.Logger.Info("HandleGetUser", zap.String("id", pId))
     res, err := ph.ps.GetProduct(r.Context(), pId)
     if err != nil {
         _ = json.NewEncoder(w).Encode(err.(vbuy.Error).ToErrorResponse())

@@ -25,10 +25,3 @@ func RequestLoggerMiddleware(ctx context.Context) func(handler http.Handler) htt
         })
     }
 }
-
-func ResponseContentTypeMiddleware(next http.Handler) http.Handler {
-    return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-        w.Header().Set("Content-Type", "application/json")
-        next.ServeHTTP(w, r)
-    })
-}
