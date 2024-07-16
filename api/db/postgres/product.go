@@ -26,19 +26,20 @@ func (pr *ProductRepository) SaveProduct(ctx context.Context, p *db.Product) (*d
         return nil, vbuy.ErrInternalServer
     }
     defer tx.Rollback(ctx)
+    rInfo.Logger.Info("db", zap.Any("product", p))
     query := `INSERT INTO PRODUCTS(
                 name,
                 released_date,
                 model,
                 manufacturer,
+                category,
                 price,
                 is_active,
                 created_by,
                 updated_by)
-            VALUES($1, $2, $3, $4, $5, $6, $7, $8)
+            VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9)
             RETURNING id, created_at, updated_at, is_active`
-    err = tx.QueryRow(ctx, query, p.Name, p.ReleasedDate, p.Model, p.Manufacturer, p.Price, p.IsActive, rInfo.User, rInfo.User).Scan(&p.ID, &p.CreatedAt, &p.UpdatedAt, &p.IsActive)
-    if err != nil {
+    if err = tx.QueryRow(ctx, query, p.Name, p.ReleasedDate, p.Model, p.Manufacturer, p.Category, p.Price, p.IsActive, rInfo.User, rInfo.User).Scan(&p.ID, &p.CreatedAt, &p.UpdatedAt, &p.IsActive); err != nil {
         rInfo.Logger.Error("error inserting row", zap.Error(err))
         return nil, vbuy.ErrInternalServer
     }
@@ -49,7 +50,7 @@ func (pr *ProductRepository) SaveProduct(ctx context.Context, p *db.Product) (*d
 
 func (pr *ProductRepository) GetProductByID(ctx context.Context, id string) (*db.Product, error) {
     rInfo := vbuy.RequestInfoFromContext(ctx)
-    query := `SELECT id, name, released_date, model, price, manufacturer, is_active, created_by, created_at, updated_by, updated_at
+    query := `SELECT id, name, released_date, model, price, manufacturer, category, is_active, created_by, created_at, updated_by, updated_at
                 FROM PRODUCTS
                WHERE id = $1`
     rows, err := pr.db.pool.Query(ctx, query, id)

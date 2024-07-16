@@ -1,4 +1,5 @@
 DROP EXTENSION IF EXISTS pgcrypto;
+DROP TYPE IF EXISTS category;
 DROP TABLE IF EXISTS sellers;
 DROP TABLE IF EXISTS cart_items;
 DROP TABLE IF EXISTS order_items;
@@ -11,6 +12,8 @@ DROP TABLE IF EXISTS products;
 
 CREATE EXTENSION IF NOT EXISTS pgcrypto;
 
+CREATE TYPE category AS ENUM('Books', 'Smartphones', 'Televisions');
+
 CREATE TABLE
     IF NOT EXISTS products
 (
@@ -20,6 +23,7 @@ CREATE TABLE
     model         VARCHAR(100),
     price         NUMERIC(12, 2) NOT NULL,
     manufacturer  VARCHAR(200)   NOT NULL,
+    category      category       NOT NULL,
     is_active     BOOLEAN                 DEFAULT TRUE,
     created_by    VARCHAR(200)   NOT NULL,
     created_at    TIMESTAMPTZ    NOT NULL DEFAULT (CURRENT_TIMESTAMP AT TIME ZONE 'UTC'),

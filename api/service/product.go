@@ -25,6 +25,7 @@ func (ps *ProductService) CreateProduct(ctx context.Context, p vbuy.ProductCreat
         Price:        float64(p.Price),
         Manufacturer: p.Manufacturer,
         IsActive:     p.IsActive,
+        Category:     string(p.Category),
     })
     if err != nil {
         return nil, err
@@ -37,6 +38,7 @@ func (ps *ProductService) CreateProduct(ctx context.Context, p vbuy.ProductCreat
         ReleasedDate: &releasedDate,
         Model:        product.Model,
         Price:        &price,
+        Category:     vbuy.Category(product.Category),
         Manufacturer: product.Manufacturer,
         IsActive:     product.IsActive,
         CreatedAt:    product.CreatedAt,
@@ -58,6 +60,7 @@ func (ps *ProductService) GetProduct(ctx context.Context, id string) (*vbuy.Prod
         ReleasedDate: &releasedDate,
         Model:        product.Model,
         Price:        &price,
+        Category:     vbuy.Category(product.Category),
         Manufacturer: product.Manufacturer,
         IsActive:     product.IsActive,
         CreatedAt:    product.CreatedAt,

@@ -10,20 +10,20 @@ import (
 func HandleInternalServerError(ctx context.Context, w http.ResponseWriter) {
     rInfo := vbuy.RequestInfoFromContext(ctx)
     w.WriteHeader(vbuy.ErrInternalServer.Status)
-    err := vbuy.EncodeJSON(w, vbuy.ErrInternalServer.ToErrorResponse())
+    err := vbuy.WriteJSON(w, vbuy.ErrInternalServer.ToErrorResponse())
     if err != nil {
         rInfo.Logger.Error("error handling internal server error", zap.Error(err))
     }
 }
 
-func HandleInvalidPayload(ctx context.Context, w http.ResponseWriter, d []vbuy.ErrorDetail) {
+func HandleInvalidPayload(ctx context.Context, w http.ResponseWriter, d []*vbuy.ErrorDetail) {
     rInfo := vbuy.RequestInfoFromContext(ctx)
     w.WriteHeader(vbuy.ErrInvalidPayload.Status)
     res := vbuy.ErrInvalidPayload
     if d != nil || len(d) > 0 {
         res.Detail = d
     }
-    err := vbuy.EncodeJSON(w, res.ToErrorResponse())
+    err := vbuy.WriteJSON(w, res.ToErrorResponse())
     if err != nil {
         rInfo.Logger.Error("error handling internal server error", zap.Error(err))
     }

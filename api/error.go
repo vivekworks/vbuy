@@ -9,7 +9,7 @@ type Error struct {
     Code   string
     Title  string
     Status int
-    Detail []ErrorDetail
+    Detail []*ErrorDetail
 }
 
 type ErrorDetail struct {
@@ -26,9 +26,9 @@ func (ed *ErrorDetail) HasMessages() bool {
 }
 
 type ErrorResponse struct {
-    Code   string        `json:"code"`
-    Title  string        `json:"title"`
-    Detail []ErrorDetail `json:"detail,omitempty"`
+    Code   string         `json:"code"`
+    Title  string         `json:"title"`
+    Detail []*ErrorDetail `json:"detail,omitempty"`
 }
 
 func (e Error) Error() string {

@@ -12,6 +12,7 @@ type Product struct {
     Model        string    `db:"model"`
     Price        float64   `db:"price"`
     Manufacturer string    `db:"manufacturer"`
+    Category     string    `db:"category"`
     IsActive     bool      `db:"is_active"`
     CreatedAt    time.Time `db:"created_at"`
     UpdatedAt    time.Time `db:"updated_at"`
